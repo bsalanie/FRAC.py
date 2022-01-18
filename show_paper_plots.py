@@ -14,6 +14,20 @@ nmarkets = 5000
 st.title("Estimating aggregate discrete choice models with FRAC")
 st.subheader("\t\tas per Salani&eacute;-Wolak (2021)")
 
+st.write("""
+This app shows how FRAC performs in the many-market limit,  as a function of the 
+randomness of the true coefficients.
+
+It plots the pseudo-true values of the coefficient estimates with the semiparametric efficiency bounds,
+and/or the estimated semi-elasticities.
+""")
+st.write("""
+The sidebar allows you to choose the type of model, the number of products, the market share of the outside good,
+the coefficient of the demographic variable, and the type of the plot you request.
+
+Each dropdown allows for multiple selections.
+""")
+
 expander_bar = st.expander("More information")
 expander_bar.markdown(
     """
@@ -91,7 +105,7 @@ expander_two.write(
 
 @st.cache(persist=True)
 def load_plot(
-    plot_type: str, nproducts: int, scenario: int, model: str, pi_num: int = None
+        plot_type: str, nproducts: int, scenario: int, model: str, pi_num: int = None
 ):
     plot_dir = f"{DATA_URL}/J{nproducts}/{model}_v{scenario}/figures_paper"
     T_str = f"T={nmarkets}" if pi_num is None else f"T={nmarkets}_pi{pi_num}"
@@ -112,19 +126,12 @@ def format_f(s: str, list_s: List[str], list_labels: List[str]) -> str:
 
 
 plot_types = st.sidebar.multiselect(
-    "Result",
+    "Type of plot",
     options=options_plot_types,
+    default="new_pseudo_vals",
     format_func=partial(
         format_f, list_s=options_plot_types, list_labels=labels_plot_types
     ),
-)
-
-options_scenarii = [4, 3]
-labels_scenarii = [f"{uni_S0} close to 0.9", f"{uni_S0} close to 0.5"]
-scenarii = st.sidebar.multiselect(
-    "Market share of the zero good",
-    options=options_scenarii,
-    format_func=partial(format_f, list_s=options_scenarii, list_labels=labels_scenarii),
 )
 
 options_models = ["endo_demog", "endo", "exo_demog", "exo"]
@@ -138,10 +145,20 @@ labels_models = [
 models = st.sidebar.multiselect(
     "Model",
     options=options_models,
+    default="endo_demog",
     format_func=partial(format_f, list_s=options_models, list_labels=labels_models),
 )
 
-J_vals = st.sidebar.multiselect("Number of products", [1, 2, 5, 10, 25, 50, 100])
+J_vals = st.sidebar.multiselect("Number of products", [1, 2, 5, 10, 25, 50, 100], default=25)
+
+options_scenarii = [4, 3]
+labels_scenarii = [f"{uni_S0} close to 0.9", f"{uni_S0} close to 0.5"]
+scenarii = st.sidebar.multiselect(
+    "Market share of the zero good",
+    options=options_scenarii,
+    default=4,
+    format_func=partial(format_f, list_s=options_scenarii, list_labels=labels_scenarii),
+)
 
 options_pi = [0, 1, 2]
 labels_pi = ["0.25", "0.5", "1.0"]
@@ -150,6 +167,7 @@ if "endo_demog" in models or "exo_demog" in models:
     pi_vals = st.sidebar.multiselect(
         f"Value of {uni_pi} (the mean coefficient of the micromoment)",
         options=options_pi,
+        default=1,
         format_func=partial(format_f, list_s=options_pi, list_labels=labels_pi),
     )
 
